@@ -4,7 +4,7 @@ import { reactive, ref, watch } from 'vue';
 
 import { useI18n, setLocale } from '../i18n/index.js';
 
-import { pickFolder, openFolder } from '../api.js';
+import { pickFolder, openFolder, syncGithubProfile } from '../api.js';
 
 
 
@@ -29,6 +29,8 @@ const { t } = useI18n();
 
 
 const tab = ref('profile');
+const githubSyncing = ref(false);
+const githubSyncMsg = ref('');
 
 const formProfile = reactive({
 
@@ -233,6 +235,26 @@ const onWeatherAutoChange = () => {
     keepOpen: true,
   });
 };
+
+async function syncGithub() {
+  githubSyncMsg.value = '';
+  githubSyncing.value = true;
+  try {
+    const res = await syncGithubProfile();
+    if (res.ok) {
+      githubSyncMsg.value = res.pushed === false ? res.message || t('githubSyncOk') : t('githubSyncOk');
+      if (res.profileUrl) {
+        githubSyncMsg.value += ` · ${res.profileUrl}`;
+      }
+    } else {
+      githubSyncMsg.value = `${t('githubSyncFail')}: ${res.error || ''}`;
+    }
+  } catch (e) {
+    githubSyncMsg.value = `${t('githubSyncFail')}: ${e.message || e}`;
+  } finally {
+    githubSyncing.value = false;
+  }
+}
 
 const save = () => {
 
@@ -476,6 +498,19 @@ const save = () => {
             </label>
 
             <p v-if="!formProfile.weatherAutoLocate" class="hint">{{ t('weatherCityAutoSave') }}</p>
+
+            <div class="github-sync-block">
+              <p class="hint">{{ t('githubSyncProfileHint') }}</p>
+              <button
+                type="button"
+                class="doodle-btn doodle-btn--sm"
+                :disabled="githubSyncing"
+                @click="syncGithub"
+              >
+                {{ githubSyncing ? t('githubSyncing') : t('githubSyncProfile') }}
+              </button>
+              <p v-if="githubSyncMsg" class="hint github-sync-msg">{{ githubSyncMsg }}</p>
+            </div>
 
           </div>
 

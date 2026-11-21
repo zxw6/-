@@ -38,6 +38,7 @@ import { getDeployDrafts, restoreDeployDraft, removeDeployDraft } from './deploy
 import { getDeployWorkspace, getDeployFileDiff, setDeployFileStage } from './deploy-workspace.js';
 import { applyGitRemote } from './deploy-remotes.js';
 import { listDeployProjects } from './deploy-projects.js';
+import { syncGithubProfile } from './github-profile-sync.js';
 
 const PORT = Number(process.env.CODE_WORKBENCH_PORT ?? 4177);
 const ALLOWED_LOCALES = new Set(['zh-CN', 'en-US']);
@@ -179,6 +180,15 @@ app.put('/api/settings/profile', async (req) => {
     }
   }
   return { ok: true, profile: loadProfile() };
+});
+
+app.post('/api/github/sync-profile', async () => {
+  try {
+    const result = await syncGithubProfile(db);
+    return result;
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
 });
 
 app.put('/api/settings/monitor', async (req) => {

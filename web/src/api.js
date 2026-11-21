@@ -191,6 +191,12 @@ export async function saveProfileSettings(body) {
   return res.json();
 }
 
+/** 用当前工作台资料生成并推送 GitHub Profile README（username/username） */
+export async function syncGithubProfile() {
+  const res = await fetch('/api/github/sync-profile', { method: 'POST' });
+  return res.json();
+}
+
 export async function pickFolder(currentPath = '') {
   const res = await fetch('/api/pick-folder', {
     method: 'POST',

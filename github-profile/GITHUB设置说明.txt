@@ -1,0 +1,28 @@
+【一】GitHub 网页右侧「简介」（短文案，Settings → Profile）
+
+显示名称（Name）：zxw
+简介（Bio）：吃好喝好没有烦恼 · 长沙 · 软件工程 · 星惠动 & 代码工作台
+所在地（Location）：Changsha, China
+网址（Website，可选）：https://github.com/zxw6/-
+
+【二】个人主页大图（Profile README）
+
+1. 打开 https://github.com/new
+2. 仓库名必须填：zxw6  （与用户名完全一致，即 zxw6/zxw6）
+3. 选 Public，可勾选 Add a README，创建
+4. 进入仓库，编辑 README.md，整段替换为本目录 README.md 的内容，提交
+5. 几分钟后访问 https://github.com/zxw6 即可看到
+
+【三】本机推送（可选）
+
+mkdir E:\github-zxw6-profile
+cd E:\github-zxw6-profile
+git init
+git remote add origin https://github.com/zxw6/zxw6.git
+copy E:\22job\github-profile\README.md .
+git add README.md
+git commit -m "docs: 添加个人主页简介"
+git branch -M main
+git push -u origin main
+
+若远程已有 README，先 git pull origin main --rebase 再 push。
