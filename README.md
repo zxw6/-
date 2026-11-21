@@ -24,7 +24,7 @@
 | 部署助手 | 先与远程同步 → 再提交 → push，可选宝塔 Webhook |
 | GitHub | 简介同步到个人主页仓（默认不覆盖本仓库 README） |
 
-默认端口：**前端 5178**（Vite）、**API 4177**（Fastify）。
+默认端口：**前端 5178**（Vite）、**API **（Fastify）。
 
 ---
 
@@ -40,7 +40,7 @@
 ├── scripts/
 │   ├── git-commit-push.ps1       # 先 commit → rebase → push
 │   └── baota-deploy-*.example.*  # 宝塔发布示例
-├── server/                       # 后端，127.0.0.1:4177
+├── server/                       # 后端，127.0.0.1:5178
 │   └── src/
 │       ├── index.js              # HTTP + WebSocket
 │       ├── watcher.js            # 文件保存监听
@@ -171,7 +171,7 @@ npm run dev
 
 | 命令 | 说明 |
 |------|------|
-| `npm run dev` | 同时启动 4177 + 5178 |
+| `npm run dev` | 同时启动   5178 |
 | `npm run tunnel` | 构建 + preview，适合 NATAPP 外网访问（请求更少） |
 | `npm run push` | 本地有改动则提交，再 `pull --rebase` 后 push |
 
