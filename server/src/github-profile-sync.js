@@ -177,6 +177,11 @@ export async function syncGithubProfile(db) {
   if (avatarSrc) await git(repoDir, ['add', 'avatar.png']);
   await git(repoDir, ['commit', '-m', 'chore: 从代码工作台同步简介']);
   try {
+    try {
+      await git(repoDir, ['pull', '--rebase', 'origin', 'main']);
+    } catch {
+      /* 首次推送可能尚无 main */
+    }
     await git(repoDir, ['push', '-u', 'origin', 'main']);
   } catch (e) {
     const msg = String(e.message || e);

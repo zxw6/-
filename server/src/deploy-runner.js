@@ -105,6 +105,18 @@ export async function runDeployTarget(db, targetId, options = {}) {
     } else {
       logs.push(`推送到 remote: ${remoteName}`);
     }
+    logs.push(`git pull --rebase ${remoteName} ${pushBranch}…`);
+    try {
+      await git(cwd, ['pull', '--rebase', remoteName, pushBranch]);
+      logs.push('已与远程同步（rebase）');
+    } catch (e) {
+      const msg = String(e?.message || e);
+      if (/no such remote|couldn't find remote ref|does not appear to be a git repository|no tracking information|not a git repository/i.test(msg)) {
+        logs.push('尚无远程分支或上游，跳过 pull');
+      } else {
+        throw new Error(`pull --rebase 失败（可能有冲突，请在本地解决后重试）: ${msg}`);
+      }
+    }
     logs.push(`git push ${remoteName} ${pushBranch}…`);
     await git(cwd, ['push', '-u', remoteName, pushBranch]);
     logs.push('push 完成');
