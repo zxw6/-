@@ -74,8 +74,15 @@ export async function runDeployTarget(db, targetId, options = {}) {
   }
 
   const curBranch = await gitCurrentBranch(cwd);
-  if (curBranch !== branch) {
-    logs.push(`当前分支 ${curBranch}，目标分支 ${branch}（未自动切换，请自行 checkout）`);
+  let pushBranch = branch;
+  try {
+    await git(cwd, ['rev-parse', '--verify', `refs/heads/${branch}`]);
+  } catch {
+    pushBranch = curBranch;
+    logs.push(`配置分支「${branch}」在本地不存在，将推送当前分支「${pushBranch}」`);
+  }
+  if (curBranch !== pushBranch) {
+    logs.push(`当前检出分支 ${curBranch}，推送分支 ${pushBranch}`);
   }
 
   let commitInfo = await readLastCommit(cwd);
@@ -98,8 +105,8 @@ export async function runDeployTarget(db, targetId, options = {}) {
     } else {
       logs.push(`推送到 remote: ${remoteName}`);
     }
-    logs.push(`git push ${remoteName} ${branch}…`);
-    await git(cwd, ['push', remoteName, branch]);
+    logs.push(`git push ${remoteName} ${pushBranch}…`);
+    await git(cwd, ['push', '-u', remoteName, pushBranch]);
     logs.push('push 完成');
     commitInfo = await readLastCommit(cwd);
   } else {

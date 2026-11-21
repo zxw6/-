@@ -44,7 +44,7 @@ watch(
   () => {
     if (!props.open || !props.project) return;
     error.value = '';
-    branch.value = props.project.branch || 'master';
+    branch.value = props.project.branch || 'main';
     urlTouched.value = false;
     const savedPush = props.project.pushRemote || props.project.gitRemote || '';
     pushRemote.value = savedPush || props.primaryRemote || 'origin';

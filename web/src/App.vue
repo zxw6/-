@@ -286,10 +286,15 @@ watch(year, () => void reloadYear());
   background: var(--bg);
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - 8px);
+  height: 100vh;
+  max-height: 100vh;
+  overflow: hidden;
+  box-sizing: border-box;
 }
-.page--deploy :deep(.deploy-shell) {
+.page--deploy :deep(.hub) {
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 .top-bar {
   margin-bottom: 20px;

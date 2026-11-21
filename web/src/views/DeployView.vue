@@ -494,7 +494,7 @@ onMounted(async () => {
           </div>
         </dl>
 
-        <section class="hub-section">
+        <section class="hub-section hub-section--pending">
           <div class="hub-section-head">
             <h3>{{ t('deployColPending') }}</h3>
             <button type="button" class="hub-ghost-btn hub-ghost-btn--sm" :disabled="workspaceLoading" @click="refreshWorkspace">
@@ -502,32 +502,34 @@ onMounted(async () => {
             </button>
           </div>
           <p v-if="workspace?.clean" class="hub-empty hub-empty--inline">{{ t('deployWorkspaceClean') }}</p>
-          <table v-else class="hub-table">
-            <thead>
-              <tr>
-                <th class="col-stage" />
-                <th>{{ t('deployTableFile') }}</th>
-                <th>{{ t('deployTableState') }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr
-                v-for="f in filesToCommit"
-                :key="f.path"
-                :class="{ active: selectedFile?.path === f.path }"
-                @click="pickFile(f)"
-              >
-                <td>
-                  <button type="button" class="hub-stage" @click="toggleStage(f, $event)">{{ f.staged ? '−' : '+' }}</button>
-                </td>
-                <td class="col-path" :title="f.path">{{ f.path }}</td>
-                <td>
-                  <span class="hub-tag">{{ statusLabel(f) }}</span>
-                  <span class="hub-tag hub-tag--muted">{{ statusBadge(f) }}</span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
+          <div v-else class="hub-pending-scroll" role="region" :aria-label="t('deployColPending')">
+            <table class="hub-table hub-table--pending">
+              <thead>
+                <tr>
+                  <th class="col-stage" />
+                  <th>{{ t('deployTableFile') }}</th>
+                  <th>{{ t('deployTableState') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr
+                  v-for="f in filesToCommit"
+                  :key="f.path"
+                  :class="{ active: selectedFile?.path === f.path }"
+                  @click="pickFile(f)"
+                >
+                  <td>
+                    <button type="button" class="hub-stage" @click="toggleStage(f, $event)">{{ f.staged ? '−' : '+' }}</button>
+                  </td>
+                  <td class="col-path" :title="f.path">{{ f.path }}</td>
+                  <td>
+                    <span class="hub-tag">{{ statusLabel(f) }}</span>
+                    <span class="hub-tag hub-tag--muted">{{ statusBadge(f) }}</span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section class="hub-section hub-section--commit">
@@ -643,7 +645,8 @@ onMounted(async () => {
   display: grid;
   grid-template-columns: 272px minmax(360px, 1fr) minmax(300px, 360px);
   flex: 1;
-  min-height: calc(100vh - 148px);
+  min-height: 0;
+  height: 100%;
   border: 1px solid var(--border);
   border-radius: 14px;
   overflow: hidden;
@@ -664,7 +667,10 @@ onMounted(async () => {
 }
 
 .hub-col--workspace {
-  overflow: auto;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
   padding: 20px 22px 24px;
   background: var(--panel);
 }
@@ -836,6 +842,11 @@ onMounted(async () => {
   justify-content: space-between;
   gap: 12px;
   margin-bottom: 16px;
+  flex-shrink: 0;
+}
+
+.hub-col--workspace > .hub-kv {
+  flex-shrink: 0;
 }
 
 .hub-work-title {
@@ -924,6 +935,52 @@ onMounted(async () => {
 
 .hub-section {
   margin-bottom: 16px;
+}
+
+.hub-section--pending {
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.hub-section--pending .hub-section-head {
+  flex-shrink: 0;
+}
+
+.hub-pending-scroll {
+  flex: 1;
+  min-height: 160px;
+  max-height: 280px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg);
+  scrollbar-width: thin;
+  scrollbar-color: var(--scrollbar-thumb) transparent;
+}
+
+.hub-pending-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.hub-pending-scroll::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 4px;
+}
+
+.hub-table--pending {
+  border: none;
+  border-radius: 0;
+}
+
+.hub-table--pending thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: 0 1px 0 var(--border);
 }
 
 .hub-section-head {
@@ -1015,8 +1072,13 @@ onMounted(async () => {
 }
 
 .hub-section--commit {
+  flex-shrink: 0;
   border-top: 1px solid var(--border);
   padding-top: 14px;
+}
+
+.hub-section--drafts {
+  flex-shrink: 0;
 }
 
 .hub-commit-label {
@@ -1301,6 +1363,7 @@ onMounted(async () => {
 }
 
 .hub-statusbar {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: space-between;
