@@ -10,6 +10,7 @@ import {
   resolveGitRemote,
   getPushRemoteInfo,
   hostDisplayName,
+  syncRemoteBeforeLocalCommit,
 } from './deploy-git.js';
 import { isWebhookConfigured } from './deploy-projects.js';
 
@@ -60,6 +61,26 @@ export async function runDeployTarget(db, targetId, options = {}) {
   );
 
   const allowCommit = options.allowCommit !== false;
+
+  let pushRemoteName = 'origin';
+  let pushBranchEarly = branch;
+  if (push) {
+    const pushInfoEarly = await getPushRemoteInfo(cwd);
+    const configuredPushEarly = String(target.pushRemote || target.gitRemote || '').trim();
+    pushRemoteName = resolveGitRemote(pushInfoEarly.remotes, {
+      gitRemote: options.gitRemote || configuredPushEarly || '',
+      gitHost: options.gitHost || '',
+      preferRemote: pushInfoEarly.primaryRemote,
+    });
+    try {
+      await git(cwd, ['rev-parse', '--verify', `refs/heads/${branch}`]);
+      pushBranchEarly = branch;
+    } catch {
+      pushBranchEarly = await gitCurrentBranch(cwd);
+    }
+    await syncRemoteBeforeLocalCommit(cwd, pushRemoteName, pushBranchEarly, logs);
+  }
+
   const status = await git(cwd, ['status', '--porcelain']);
   if (status) {
     if (!allowCommit) {
@@ -105,16 +126,19 @@ export async function runDeployTarget(db, targetId, options = {}) {
     } else {
       logs.push(`推送到 remote: ${remoteName}`);
     }
-    logs.push(`git pull --rebase ${remoteName} ${pushBranch}…`);
     try {
-      await git(cwd, ['pull', '--rebase', remoteName, pushBranch]);
-      logs.push('已与远程同步（rebase）');
+      await git(cwd, ['fetch', remoteName, pushBranch]);
+      const behind = await git(cwd, ['rev-list', '--count', `HEAD..${remoteName}/${pushBranch}`]).catch(() => '0');
+      if (behind !== '0') {
+        await git(cwd, ['rebase', `${remoteName}/${pushBranch}`]);
+        logs.push('推送前已与远程对齐');
+      }
     } catch (e) {
       const msg = String(e?.message || e);
-      if (/no such remote|couldn't find remote ref|does not appear to be a git repository|no tracking information|not a git repository/i.test(msg)) {
-        logs.push('尚无远程分支或上游，跳过 pull');
+      if (/no such remote|couldn't find remote ref|not a git repository/i.test(msg)) {
+        logs.push('远程分支尚不存在，直接 push');
       } else {
-        throw new Error(`pull --rebase 失败（可能有冲突，请在本地解决后重试）: ${msg}`);
+        throw new Error(`推送前同步失败（请在本地解决冲突后重试）: ${msg}`);
       }
     }
     logs.push(`git push ${remoteName} ${pushBranch}…`);

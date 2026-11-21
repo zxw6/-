@@ -106,10 +106,18 @@ function profileReadmeContext(db) {
 
 /** 同步到当前工作台 Git 根目录 README（推送到 zxw6/- 等代码仓时会在仓库页显示） */
 export function writeWorkbenchRootReadme(db) {
-  const ctx = profileReadmeContext(db);
-  const abs = path.join(PACKAGE_ROOT, 'README.md');
-  fs.writeFileSync(abs, ctx.readme, 'utf8');
   const profile = loadProfile();
+  const abs = path.join(PACKAGE_ROOT, 'README.md');
+  if (profile.overwriteRootReadme !== true && fs.existsSync(abs)) {
+    return {
+      path: abs,
+      skipped: true,
+      githubUser: profile.githubUsername || '',
+      avatarPath: null,
+    };
+  }
+  const ctx = profileReadmeContext(db);
+  fs.writeFileSync(abs, ctx.readme, 'utf8');
   const avatarSrc = avatarAbsPath(profile.avatarFile);
   let avatarPath = null;
   if (avatarSrc) {
@@ -125,8 +133,6 @@ export async function syncGithubProfile(db) {
   if (!githubUser) {
     throw new Error('未找到 GitHub 用户名：请在 deploy.json 填写 GitHub 推送地址，或在 profile.json 增加 githubUsername');
   }
-
-  writeWorkbenchRootReadme(db);
 
   const repoDir = path.join(DATA_DIR, 'github-profile', githubUser);
   fs.mkdirSync(repoDir, { recursive: true });

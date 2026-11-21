@@ -134,3 +134,92 @@ export function hostDisplayName(host) {
   if (host === 'bitbucket') return 'Bitbucket';
   return '';
 }
+
+const STASH_MSG = 'code-workbench: pre-sync';
+
+/** 提交前先与远程对齐，降低「先 commit 再 rebase」触发的 README 冲突 */
+export async function syncRemoteBeforeLocalCommit(cwd, remoteName, branch, logs) {
+  try {
+    await git(cwd, ['fetch', remoteName, branch]);
+  } catch (e) {
+    logs.push(`fetch 跳过: ${String(e.message || e).slice(0, 120)}`);
+    return;
+  }
+
+  let behind = '0';
+  try {
+    behind = await git(cwd, ['rev-list', '--count', `HEAD..${remoteName}/${branch}`]);
+  } catch {
+    logs.push('远程尚无对应分支，跳过同步');
+    return;
+  }
+  if (!behind || behind === '0') {
+    logs.push('远程无新提交');
+    return;
+  }
+
+  logs.push(`远程领先 ${behind} 个提交，提交前先同步…`);
+  const porcelain = await git(cwd, ['status', '--porcelain']);
+  const hadLocal = Boolean(porcelain.trim());
+
+  if (hadLocal) {
+    await git(cwd, ['stash', 'push', '-u', '-m', STASH_MSG]);
+    try {
+      await git(cwd, ['rebase', `${remoteName}/${branch}`]);
+      logs.push('已 rebase 到远程');
+    } catch (e) {
+      try {
+        await git(cwd, ['rebase', '--abort']);
+      } catch {
+        /* ignore */
+      }
+      try {
+        await git(cwd, ['stash', 'pop']);
+      } catch {
+        /* ignore */
+      }
+      throw e;
+    }
+    try {
+      await git(cwd, ['stash', 'pop']);
+      logs.push('已恢复本地未提交改动');
+    } catch (e) {
+      await resolveStashPopConflicts(cwd, logs);
+    }
+  } else {
+    await git(cwd, ['rebase', `${remoteName}/${branch}`]);
+    logs.push('已与远程对齐');
+  }
+}
+
+async function resolveStashPopConflicts(cwd, logs) {
+  let unmerged = '';
+  try {
+    unmerged = await git(cwd, ['diff', '--name-only', '--diff-filter=U']);
+  } catch {
+    /* ignore */
+  }
+  const files = unmerged
+    .split('\n')
+    .map((s) => s.trim())
+    .filter(Boolean);
+  if (!files.length) {
+    throw new Error('恢复本地改动失败，请在本机执行 git status 处理');
+  }
+  for (const f of files) {
+    if (f === 'README.md') {
+      await git(cwd, ['checkout', 'stash@{0}', '--', 'README.md']);
+      await git(cwd, ['add', 'README.md']);
+      logs.push('README.md 冲突已采用本地未提交版本');
+    }
+  }
+  const still = await git(cwd, ['diff', '--name-only', '--diff-filter=U']).catch(() => '');
+  if (still.trim()) {
+    throw new Error(`仍有未解决冲突: ${still.trim()}，请在本地解决后重试部署`);
+  }
+  try {
+    await git(cwd, ['stash', 'drop']);
+  } catch {
+    /* ignore */
+  }
+}
