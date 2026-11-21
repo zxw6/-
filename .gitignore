@@ -1,0 +1,13 @@
+node_modules
+dist
+data/
+deploy-drafts/
+*.db
+*.db-shm
+*.db-wal
+profile.json
+config.json
+deploy.json
+.DS_Store
+.env
+.env.*

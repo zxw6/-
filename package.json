@@ -1,0 +1,15 @@
+{
+  "name": "personal-code-workbench",
+  "private": true,
+  "version": "0.2.0",
+  "description": "个人代码活动工作台，与公司仓库分离，整目录可带走",
+  "scripts": {
+    "dev": "concurrently -n server,web -c blue,green \"npm run dev --prefix server\" \"npm run dev --prefix web\"",
+    "dev:server": "npm run dev --prefix server",
+    "dev:web": "npm run dev --prefix web",
+    "start": "npm start --prefix server"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}

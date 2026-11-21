@@ -1,0 +1,23 @@
+{
+  "comment": "复制为 E:\\22job\\deploy.json 后填写。宝塔侧见 scripts/baota-deploy-hook.example.sh",
+  "defaults": {
+    "commitMessagePrefix": "chore: deploy "
+  },
+  "targets": [
+    {
+      "id": "admin-prod",
+      "label": "管理端 → 宝塔生产",
+      "repoKey": "my-app",
+      "branch": "master",
+      "gitRemote": "origin",
+      "pushRemote": "origin",
+      "submitLabel": "Gitee",
+      "comment_submit": "submitLabel 自定义展示名（如 蓝湖、Coding）；pushRemote 为 git remote 名称",
+      "pushBeforeWebhook": true,
+      "webhookUrl": "https://你的域名/hooks/deploy-admin",
+      "webhookSecret": "换成长随机字符串",
+      "baotaSitePath": "/www/wwwroot/xhd-admin",
+      "note": "repoKey 须与 config.json 里 repositories[].key 一致"
+    }
+  ]
+}

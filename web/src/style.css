@@ -1,0 +1,86 @@
+:root,
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #0d1117;
+  --panel: #161b22;
+  --border: #30363d;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #2ea043;
+  --accent-2: #26a641;
+  --accent-3: #196c2e;
+  --accent-4: #0e4429;
+  --link: #58a6ff;
+  --text-secondary: #9198a1;
+  --text-tertiary: #7d8590;
+  --surface-muted: #21262d;
+  --surface-inset: #0d1117;
+  --surface-subtle: #161b22;
+  --dialog-bg: #21262d;
+  --divider: #21262d;
+  --heat-empty: #161b22;
+  --heat-outline: rgba(27, 31, 35, 0.06);
+  --btn-secondary-bg: #21262d;
+  --btn-secondary-hover: #30363d;
+  --btn-secondary-hover-border: #8b949e;
+  --overlay: rgba(0, 0, 0, 0.6);
+  --shadow-popover: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-dialog: 0 16px 48px rgba(0, 0, 0, 0.4);
+  --scrollbar-thumb: #484f58;
+  --summary: #c9d1d9;
+  --year-active-bg: #388bfd;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+}
+
+[data-theme='light'] {
+  color-scheme: light;
+  --bg: #f6f8fa;
+  --panel: #ffffff;
+  --border: #d0d7de;
+  --text: #1f2328;
+  --muted: #656d76;
+  --accent: #1a7f37;
+  --accent-2: #2da44e;
+  --accent-3: #196c2e;
+  --accent-4: #dafbe1;
+  --link: #0969da;
+  --text-secondary: #656d76;
+  --text-tertiary: #59636e;
+  --surface-muted: #f6f8fa;
+  --surface-inset: #f6f8fa;
+  --surface-subtle: #ffffff;
+  --dialog-bg: #ffffff;
+  --divider: #d8dee4;
+  --heat-empty: #ebedf0;
+  --heat-outline: rgba(31, 35, 40, 0.08);
+  --btn-secondary-bg: #f6f8fa;
+  --btn-secondary-hover: #eaeef2;
+  --btn-secondary-hover-border: #818b98;
+  --overlay: rgba(31, 35, 40, 0.35);
+  --shadow-popover: 0 8px 24px rgba(31, 35, 40, 0.12);
+  --shadow-dialog: 0 16px 48px rgba(31, 35, 40, 0.15);
+  --scrollbar-thumb: #afb8c1;
+  --summary: #424a53;
+  --year-active-bg: #0969da;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+}
+
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#app {
+  min-height: 0;
+  background: var(--bg);
+  color: var(--text);
+}

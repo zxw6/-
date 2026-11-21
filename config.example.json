@@ -1,0 +1,12 @@
+{
+  "profileName": "我的工作台",
+  "snapshotIntervalSeconds": 120,
+  "repositories": [
+    {
+      "key": "my-app",
+      "label": "我的项目",
+      "path": "D:/projects/my-app",
+      "note": "绝对路径；换工作后只改这里的 path，程序与历史数据仍在 E:\\22job"
+    }
+  ]
+}
