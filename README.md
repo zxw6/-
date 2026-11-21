@@ -81,7 +81,6 @@ flowchart TB
   end
 
   subgraph Monitored["config.json 中的本地仓库"]
-    R1["后端 / 管理端 / 小程序…"]
     R2["22job 自身"]
   end
 
@@ -130,11 +129,6 @@ sequenceDiagram
 
 ```mermaid
 flowchart LR
-  CFG["config.json"] --> BE["星惠动后端"]
-  CFG --> AD["管理端"]
-  CFG --> UNI["消费者小程序"]
-  CFG --> SUP["供应链小程序"]
-  CFG --> META["sql / doc / harness"]
   CFG --> SELF["22job"]
 ```
 
