@@ -72,7 +72,6 @@ flowchart TB
 
   subgraph Local["本机 22job"]
     Vite["web :5178"]
-    API["server :4177"]
     WS["WebSocket /ws"]
     DB[("SQLite activity.db")]
     W["watcher"]
