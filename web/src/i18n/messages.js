@@ -183,7 +183,7 @@ export const messages = {
     displayName: '显示名称',
     bio: '个人简介',
     githubSyncProfile: '同步 GitHub 主页',
-    githubSyncProfileHint: '按左侧资料与监听列表更新 GitHub 个人 README（需已创建与用户名同名的公开仓库）',
+    githubSyncProfileHint: '写入本仓库 README.md 并推送到 zxw6/- 即可在仓库页看到；个人主页 github.com/zxw6 还需新建同名仓库 zxw6',
     githubSyncing: '正在同步…',
     githubSyncOk: '已同步到 GitHub',
     githubSyncFail: '同步失败',

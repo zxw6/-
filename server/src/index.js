@@ -187,7 +187,18 @@ app.post('/api/github/sync-profile', async () => {
     const result = await syncGithubProfile(db);
     return result;
   } catch (e) {
-    return { ok: false, error: e.message };
+    try {
+      const { writeWorkbenchRootReadme } = await import('./github-profile-sync.js');
+      const root = writeWorkbenchRootReadme(db);
+      return {
+        ok: false,
+        error: e.message,
+        rootReadme: root.path,
+        hint: '已写入本仓库 README.md，请用部署页「开始更新」推送到 GitHub；个人主页还需创建与用户名同名的 zxw6/zxw6 仓库',
+      };
+    } catch {
+      return { ok: false, error: e.message };
+    }
   }
 });
 

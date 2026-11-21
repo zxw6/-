@@ -1,6 +1,6 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { DATA_DIR } from './config.js';
+import { DATA_DIR, PACKAGE_ROOT } from './config.js';
 import { readMonitorConfig } from './config.js';
 import { readDeployConfig } from './deploy-config.js';
 import { loadProfile, avatarAbsPath } from './profile.js';
@@ -31,7 +31,7 @@ export function resolveGithubUsername() {
   return '';
 }
 
-function findWorkbenchRepoUrl(githubUser) {
+export function findWorkbenchRepoUrl(githubUser) {
   const cfg = readDeployConfig();
   for (const t of cfg.targets ?? []) {
     const url = String(t.pushRemoteUrl || '').trim();
@@ -85,19 +85,14 @@ ${rows || '| — | — |'}
 `;
 }
 
-export async function syncGithubProfile(db) {
+function profileReadmeContext(db) {
   const githubUser = resolveGithubUsername();
-  if (!githubUser) {
-    throw new Error('未找到 GitHub 用户名：请在 deploy.json 填写 GitHub 推送地址，或在 profile.json 增加 githubUsername');
-  }
-
   const profile = loadProfile();
   const monitor = readMonitorConfig();
   const repos = monitor.repositories ?? [];
   const year = new Date().getFullYear();
   const stats = yearStatsSummary(db, year);
   const workbenchRepoUrl = findWorkbenchRepoUrl(githubUser);
-
   const readme = buildGithubProfileReadme({
     profile,
     repositories: repos,
@@ -106,6 +101,32 @@ export async function syncGithubProfile(db) {
     githubUser,
     workbenchRepoUrl,
   });
+  return { githubUser, profile, readme };
+}
+
+/** 同步到当前工作台 Git 根目录 README（推送到 zxw6/- 等代码仓时会在仓库页显示） */
+export function writeWorkbenchRootReadme(db) {
+  const ctx = profileReadmeContext(db);
+  const abs = path.join(PACKAGE_ROOT, 'README.md');
+  fs.writeFileSync(abs, ctx.readme, 'utf8');
+  const profile = loadProfile();
+  const avatarSrc = avatarAbsPath(profile.avatarFile);
+  let avatarPath = null;
+  if (avatarSrc) {
+    avatarPath = path.join(PACKAGE_ROOT, 'avatar.png');
+    fs.copyFileSync(avatarSrc, avatarPath);
+  }
+  return { path: abs, githubUser: ctx.githubUser, avatarPath };
+}
+
+export async function syncGithubProfile(db) {
+  const ctx = profileReadmeContext(db);
+  const { githubUser, profile, readme } = ctx;
+  if (!githubUser) {
+    throw new Error('未找到 GitHub 用户名：请在 deploy.json 填写 GitHub 推送地址，或在 profile.json 增加 githubUsername');
+  }
+
+  writeWorkbenchRootReadme(db);
 
   const repoDir = path.join(DATA_DIR, 'github-profile', githubUser);
   fs.mkdirSync(repoDir, { recursive: true });
