@@ -61,6 +61,7 @@ export function upsertDeployTargetForRepo(repoKey, patch) {
     gitRemote: patch.pushRemote ?? patch.gitRemote ?? prevRow.gitRemote ?? prevRow.pushRemote ?? '',
     pushRemote: patch.pushRemote ?? patch.gitRemote ?? prevRow.pushRemote ?? prevRow.gitRemote ?? '',
     submitLabel: patch.submitLabel ?? prevRow.submitLabel ?? '',
+    pushRemoteUrl: patch.pushRemoteUrl ?? prevRow.pushRemoteUrl ?? '',
     gitHost: patch.gitHost ?? prevRow.gitHost ?? '',
     pushBeforeWebhook: patch.pushBeforeWebhook ?? prevRow.pushBeforeWebhook ?? true,
     webhookUrl: patch.webhookUrl ?? prevRow.webhookUrl ?? '',

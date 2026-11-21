@@ -1,7 +1,7 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
 import { useI18n } from '../i18n/index.js';
-import { saveDeployTarget, openDeployConfig } from '../api.js';
+import { saveDeployTarget, openDeployConfig, applyDeployRemote } from '../api.js';
 
 const props = defineProps({
   open: { type: Boolean, default: false },
@@ -16,7 +16,9 @@ const { t } = useI18n();
 const saving = ref(false);
 const error = ref('');
 const branch = ref('master');
-const pushRemote = ref('');
+const pushRemote = ref('origin');
+const pushUrl = ref('');
+const urlTouched = ref(false);
 const submitLabel = ref('');
 const useBaota = ref(false);
 const webhookUrl = ref('');
@@ -43,8 +45,12 @@ watch(
     if (!props.open || !props.project) return;
     error.value = '';
     branch.value = props.project.branch || 'master';
+    urlTouched.value = false;
     const savedPush = props.project.pushRemote || props.project.gitRemote || '';
-    pushRemote.value = savedPush || props.primaryRemote || '';
+    pushRemote.value = savedPush || props.primaryRemote || 'origin';
+    const r = props.remotes?.find((x) => x.name === pushRemote.value);
+    pushUrl.value =
+      props.project.pushRemoteUrl || r?.url || props.remotes?.find((x) => x.name === 'origin')?.url || '';
     submitLabel.value = props.project.submitLabel || '';
     useBaota.value = props.project.configTags?.includes('宝塔');
     webhookUrl.value = /你的域名/.test(props.project.webhookUrl || '') ? '' : props.project.webhookUrl || '';
@@ -55,11 +61,19 @@ watch(
 );
 
 watch(pushRemote, (name) => {
+  if (!urlTouched.value) {
+    const r = props.remotes?.find((x) => x.name === name);
+    if (r?.url) pushUrl.value = r.url;
+  }
   if (submitLabel.value.trim()) return;
   const r = props.remotes?.find((x) => x.name === name);
   if (!r) return;
   submitLabel.value = remoteHint(r);
 });
+
+function onUrlInput() {
+  urlTouched.value = true;
+}
 
 async function onSave() {
   if (!props.project?.repoKey) return;
@@ -71,12 +85,25 @@ async function onSave() {
       saving.value = false;
       return;
     }
+    const rName = pushRemote.value.trim() || 'origin';
+    const url = pushUrl.value.trim();
+    if (!url) {
+      error.value = t('deployCfgNeedUrl');
+      saving.value = false;
+      return;
+    }
+    const gitRes = await applyDeployRemote(props.project.repoKey, rName, url);
+    if (!gitRes.ok) {
+      error.value = gitRes.error || 'git remote failed';
+      return;
+    }
     const label = submitLabel.value.trim();
     const res = await saveDeployTarget(props.project.repoKey, {
       label: props.project.label,
       branch: branch.value.trim() || 'master',
-      pushRemote: pushRemote.value.trim(),
-      gitRemote: pushRemote.value.trim(),
+      pushRemote: rName,
+      gitRemote: rName,
+      pushRemoteUrl: url,
       submitLabel: label,
       gitHost: '',
       webhookUrl: useBaota.value ? webhookUrl.value.trim() : '',
@@ -115,16 +142,25 @@ async function onSave() {
               <span class="dc-remote-url" :title="r.url">{{ r.url }}</span>
             </li>
           </ul>
-          <p v-else class="dc-hint dc-hint--warn">{{ t('deployCfgNoRemote') }}</p>
 
           <label class="dc-field">
-            <span>{{ t('deployCfgPushRemote') }}</span>
-            <select v-model="pushRemote" class="dc-input">
-              <option value="">{{ t('deployCfgPushFollowUpstream', { name: primaryRemote || 'origin' }) }}</option>
-              <option v-for="r in remoteOptions" :key="r.name" :value="r.name">
-                {{ r.name }} · {{ remoteHint(r) }} · {{ r.url }}
-              </option>
-            </select>
+            <span>{{ t('deployCfgRemoteName') }}</span>
+            <input v-model="pushRemote" class="dc-input" type="text" list="dc-remote-names" placeholder="origin" />
+            <datalist id="dc-remote-names">
+              <option v-for="r in remoteOptions" :key="r.name" :value="r.name" />
+            </datalist>
+          </label>
+
+          <label class="dc-field">
+            <span>{{ t('deployCfgPushUrl') }}</span>
+            <input
+              v-model="pushUrl"
+              class="dc-input dc-input--url"
+              type="url"
+              :placeholder="t('deployCfgPushUrlPh')"
+              @input="onUrlInput"
+            />
+            <p class="dc-hint">{{ t('deployCfgPushUrlHint') }}</p>
           </label>
 
           <label class="dc-field">
@@ -300,6 +336,11 @@ async function onSave() {
   font-size: 13px;
   background: var(--bg);
   color: var(--text);
+}
+
+.dc-input--url {
+  font-family: ui-monospace, Consolas, monospace;
+  font-size: 12px;
 }
 .dc-error {
   color: #cf222e;

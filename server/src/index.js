@@ -36,6 +36,7 @@ import { openPathInExplorer, openFileWithDefaultApp } from './pick-folder.js';
 import { runDeployTarget, getRemotesForRepo } from './deploy-runner.js';
 import { getDeployDrafts, restoreDeployDraft, removeDeployDraft } from './deploy-drafts.js';
 import { getDeployWorkspace, getDeployFileDiff, setDeployFileStage } from './deploy-workspace.js';
+import { applyGitRemote } from './deploy-remotes.js';
 import { listDeployProjects } from './deploy-projects.js';
 
 const PORT = Number(process.env.CODE_WORKBENCH_PORT ?? 4177);
@@ -450,6 +451,19 @@ app.get('/api/deploy/remotes', async (req) => {
   if (!repoKey) return { ok: false, error: 'repoKey required' };
   try {
     return await getRemotesForRepo(repoKey);
+  } catch (e) {
+    return { ok: false, error: e.message };
+  }
+});
+
+app.post('/api/deploy/remotes', async (req) => {
+  const body = req.body ?? {};
+  const repoKey = String(body.repoKey ?? '').trim();
+  const remoteName = String(body.remoteName ?? body.name ?? 'origin').trim();
+  const url = String(body.url ?? '').trim();
+  if (!repoKey || !url) return { ok: false, error: 'repoKey 与 url 必填' };
+  try {
+    return await applyGitRemote(repoKey, remoteName, url);
   } catch (e) {
     return { ok: false, error: e.message };
   }

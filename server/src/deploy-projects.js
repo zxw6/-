@@ -65,6 +65,7 @@ export function listDeployProjects() {
       branch: t?.branch ?? 'master',
       gitRemote: t?.pushRemote ?? t?.gitRemote ?? '',
       pushRemote: t?.pushRemote ?? t?.gitRemote ?? '',
+      pushRemoteUrl: t?.pushRemoteUrl ?? '',
       submitLabel: t?.submitLabel ?? '',
       gitHost: t?.gitHost ?? '',
       baotaSitePath: t?.baotaSitePath ?? '',

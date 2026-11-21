@@ -102,6 +102,15 @@ export async function fetchDeployRemotes(repoKey) {
   return res.json();
 }
 
+export async function applyDeployRemote(repoKey, remoteName, url) {
+  const res = await fetch('/api/deploy/remotes', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ repoKey, remoteName, url }),
+  });
+  return res.json();
+}
+
 export async function fetchDeployDrafts(repoKey = '') {
   const p = new URLSearchParams();
   if (repoKey) p.set('repoKey', repoKey);
