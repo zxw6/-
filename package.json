@@ -9,7 +9,8 @@
     "dev:web": "npm run dev --prefix web",
     "tunnel:web": "npm run build --prefix web && npm run preview --prefix web",
     "tunnel": "concurrently -n server,web -c blue,green \"npm run dev --prefix server\" \"npm run tunnel:web\"",
-    "start": "npm start --prefix server"
+    "start": "npm start --prefix server",
+    "push": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/git-commit-push.ps1"
   },
   "devDependencies": {
     "concurrently": "^9.1.2"
