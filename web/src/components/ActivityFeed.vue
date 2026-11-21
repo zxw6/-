@@ -148,8 +148,7 @@ const onDateInput = (e) => {
 
 <template>
   <section class="feed">
-    <div class="feed-head">
-      <h2 class="feed-title">{{ t('activityDetails') }}</h2>
+    <div class="feed-head feed-head--loader-only">
       <div class="feed-loader">
         <SliderLoader :aria-label="t('activityLoader')" />
       </div>
