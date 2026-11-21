@@ -38,7 +38,7 @@ const selectedFile = ref(null);
 const diffText = ref('');
 const diffLoading = ref(false);
 const running = ref(false);
-const restoreBusy = ref(false);
+const draftBusy = ref(false);
 const logs = ref([]);
 const lastError = ref('');
 const lastRunOk = ref(null);
@@ -353,14 +353,26 @@ async function onRun() {
 
 async function onRestoreDraft(draft) {
   if (!window.confirm(t('deployDraftRestoreConfirm', { hash: draft.shortHash }))) return;
-  restoreBusy.value = true;
+  draftBusy.value = true;
   try {
     const res = await restoreDeployDraft(draft.id);
     logs.value = res.logs ?? [];
     if (!res.ok) lastError.value = res.error || 'failed';
     else await loadRemotesAndDrafts();
   } finally {
-    restoreBusy.value = false;
+    draftBusy.value = false;
+  }
+}
+
+async function onDeleteDraft(draft) {
+  if (!window.confirm(t('deployDraftDeleteConfirm'))) return;
+  draftBusy.value = true;
+  try {
+    const res = await deleteDeployDraft(draft.id);
+    if (!res.ok) lastError.value = res.error || 'failed';
+    else await loadRemotesAndDrafts();
+  } finally {
+    draftBusy.value = false;
   }
 }
 
@@ -545,9 +557,21 @@ onMounted(async () => {
           <h3 class="hub-section-title">{{ t('deployDraftsTitle') }}</h3>
           <ul class="hub-draft-list">
             <li v-for="d in drafts.slice(0, 5)" :key="d.id">
-              <span>#{{ d.id }} {{ d.shortHash }}</span>
-              <span>{{ formatDraftTime(d.createdAt) }}</span>
-              <button type="button" :disabled="restoreBusy" @click="onRestoreDraft(d)">{{ t('deployDraftRestore') }}</button>
+              <span class="hub-draft-meta">#{{ d.id }} {{ d.shortHash }}</span>
+              <span class="hub-draft-time">{{ formatDraftTime(d.createdAt) }}</span>
+              <div class="hub-draft-actions">
+                <button type="button" class="hub-draft-btn" :disabled="draftBusy" @click="onRestoreDraft(d)">
+                  {{ t('deployDraftRestore') }}
+                </button>
+                <button
+                  type="button"
+                  class="hub-draft-btn hub-draft-btn--danger"
+                  :disabled="draftBusy"
+                  @click="onDeleteDraft(d)"
+                >
+                  {{ t('deployDraftDelete') }}
+                </button>
+              </div>
             </li>
           </ul>
         </section>
@@ -1117,19 +1141,48 @@ onMounted(async () => {
 }
 
 .hub-draft-list li {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: 1fr auto auto;
   gap: 8px;
   align-items: center;
 }
 
-.hub-draft-list button {
+.hub-draft-meta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.hub-draft-time {
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.hub-draft-actions {
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+
+.hub-draft-btn {
   border: 1px solid var(--border);
   border-radius: 6px;
   padding: 2px 8px;
   font-size: 11px;
   cursor: pointer;
   background: var(--panel);
+  color: var(--text);
+}
+
+.hub-draft-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hub-draft-btn--danger {
+  border-color: color-mix(in srgb, var(--danger, #cf222e) 55%, var(--border));
+  color: var(--danger, #cf222e);
 }
 
 .hub-col--detail {

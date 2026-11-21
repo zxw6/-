@@ -80,7 +80,12 @@ body {
 }
 
 #app {
-  min-height: 0;
-  background: var(--bg);
+  min-height: 100vh;
+  background: transparent;
   color: var(--text);
+}
+
+[data-theme='dark'] html,
+[data-theme='dark'] body {
+  background: #090a0f;
 }

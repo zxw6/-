@@ -10,6 +10,7 @@ import CommitRecordSection from './components/CommitRecordSection.vue';
 import WorkLogPanel from './components/WorkLogPanel.vue';
 import ClawModeToggle from './components/ClawModeToggle.vue';
 import DeployView from './views/DeployView.vue';
+import StarfieldBackground from './components/StarfieldBackground.vue';
 import { applyTheme, readCachedTheme } from './theme.js';
 import {
   fetchRepos,
@@ -200,6 +201,7 @@ watch(year, () => void reloadYear());
 
 <template>
   <div class="page" :class="{ 'page--deploy': deployMode }">
+    <StarfieldBackground v-if="theme === 'dark'" class="page__bg" />
     <header class="top-bar">
       <div class="top-bar__row">
         <div class="top-bar__start">
@@ -276,14 +278,19 @@ watch(year, () => void reloadYear());
 
 <style scoped>
 .page {
+  position: relative;
+  z-index: 1;
   max-width: 1280px;
   margin: 0 auto;
   padding: 24px;
 }
+.page__bg {
+  z-index: -1;
+}
 .page--deploy {
   max-width: none;
   padding: 16px 20px 20px;
-  background: var(--bg);
+  background: transparent;
   display: flex;
   flex-direction: column;
   height: 100vh;
@@ -295,6 +302,9 @@ watch(year, () => void reloadYear());
   flex: 1;
   min-height: 0;
   overflow: hidden;
+}
+:global([data-theme='light']) .page--deploy {
+  background: var(--bg);
 }
 .top-bar {
   margin-bottom: 20px;
